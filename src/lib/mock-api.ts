@@ -1,106 +1,193 @@
-export interface VideoHighlight {
-  id: string;
-  title: string;
-  description: string;
-  thumbnail: string;
-  duration: number;
-  highlights: {
-    id: string;
-    startTime: number;
-    endTime: number;
-    description: string;
-    confidence: number;
-  }[];
-  createdAt: string;
-}
+// src/lib/mock-api.ts
+import type {
+  VideoHighlight,
+  TranscriptItem,
+  UploadProgress
+} from '@/types/video';
 
-// Mock 數據
-const mockVideos: VideoHighlight[] = [
-  {
-    id: '1',
-    title: '足球比賽精彩片段',
-    description: '2024年世界盃決賽精彩時刻',
-    thumbnail: 'https://via.placeholder.com/300x200',
-    duration: 5400, // 90 minutes in seconds
-    highlights: [
+// 簡單的記憶體存儲
+let currentVideo: VideoHighlight | null = null;
+
+export const mockApi = {
+  // 上傳影片並生成轉錄
+  uploadVideo: async (
+    file: File,
+    onProgress: (progress: UploadProgress) => void
+  ): Promise<VideoHighlight> => {
+    const videoId = `video_${Date.now()}`;
+
+    // 模擬上傳進度
+    const stages = [
+      { progress: 20, stage: 'uploading' as const, message: '上傳影片中...' },
       {
-        id: 'h1',
-        startTime: 300,
-        endTime: 320,
-        description: '精彩進球時刻',
-        confidence: 0.95
+        progress: 40,
+        stage: 'processing' as const,
+        message: 'AI 分析影片內容...'
       },
       {
-        id: 'h2',
-        startTime: 1200,
-        endTime: 1230,
-        description: '關鍵防守',
-        confidence: 0.88
-      }
-    ],
-    createdAt: '2024-07-04T10:00:00Z'
-  },
-  {
-    id: '2',
-    title: '籃球比賽亮點',
-    description: 'NBA總決賽第七場',
-    thumbnail: 'https://via.placeholder.com/300x200',
-    duration: 2880, // 48 minutes
-    highlights: [
+        progress: 60,
+        stage: 'transcribing' as const,
+        message: '生成字幕中...'
+      },
+      { progress: 80, stage: 'analyzing' as const, message: '分析重點片段...' },
+      { progress: 100, stage: 'completed' as const, message: '處理完成！' }
+    ];
+
+    for (const stage of stages) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      onProgress(stage);
+    }
+
+    // 生成模擬的轉錄數據
+    const transcript: TranscriptItem[] = [
+      // Introduction 部分
       {
-        id: 'h3',
-        startTime: 600,
-        endTime: 615,
-        description: '三分球絕殺',
-        confidence: 0.92
+        id: '1',
+        startTime: 0,
+        endTime: 5,
+        text: 'Welcome to our product demonstration.',
+        speaker: 'Presenter',
+        confidence: 0.95,
+        isHighlight: false,
+        segment: 'Introduction'
+      },
+      {
+        id: '2',
+        startTime: 5,
+        endTime: 10,
+        text: "Today, we'll be showcasing our latest innovation.",
+        speaker: 'Presenter',
+        confidence: 0.92,
+        isHighlight: true, // 重點片段
+        segment: 'Introduction'
+      },
+
+      // Key Features 部分
+      {
+        id: '3',
+        startTime: 15,
+        endTime: 20,
+        text: 'Our product has three main features.',
+        speaker: 'Presenter',
+        confidence: 0.88,
+        isHighlight: false,
+        segment: 'Key Features'
+      },
+      {
+        id: '4',
+        startTime: 20,
+        endTime: 25,
+        text: "First, it's incredibly easy to use.",
+        speaker: 'Presenter',
+        confidence: 0.9,
+        isHighlight: false,
+        segment: 'Key Features'
+      },
+      {
+        id: '5',
+        startTime: 25,
+        endTime: 30,
+        text: "Second, it's highly efficient.",
+        speaker: 'Presenter',
+        confidence: 0.93,
+        isHighlight: false,
+        segment: 'Key Features'
+      },
+      {
+        id: '6',
+        startTime: 30,
+        endTime: 35,
+        text: "And third, it's cost-effective.",
+        speaker: 'Presenter',
+        confidence: 0.91,
+        isHighlight: false,
+        segment: 'Key Features'
+      },
+
+      // Demonstration 部分
+      {
+        id: '7',
+        startTime: 40,
+        endTime: 45,
+        text: 'Let me show you how it works.',
+        speaker: 'Presenter',
+        confidence: 0.87,
+        isHighlight: false,
+        segment: 'Demonstration'
+      },
+      {
+        id: '8',
+        startTime: 45,
+        endTime: 50,
+        text: 'Simply press this button to start.',
+        speaker: 'Presenter',
+        confidence: 0.94,
+        isHighlight: true, // 重點片段
+        segment: 'Demonstration'
+      },
+      {
+        id: '9',
+        startTime: 50,
+        endTime: 55,
+        text: 'The interface is intuitive and user-friendly.',
+        speaker: 'Presenter',
+        confidence: 0.89,
+        isHighlight: true, // 重點片段
+        segment: 'Demonstration'
+      },
+
+      // Conclusion 部分
+      {
+        id: '10',
+        startTime: 60,
+        endTime: 65,
+        text: 'In conclusion, our product is a game-changer.',
+        speaker: 'Presenter',
+        confidence: 0.96,
+        isHighlight: false,
+        segment: 'Conclusion'
+      },
+      {
+        id: '11',
+        startTime: 65,
+        endTime: 70,
+        text: "We're excited to bring this to market.",
+        speaker: 'Presenter',
+        confidence: 0.93,
+        isHighlight: true, // 重點片段
+        segment: 'Conclusion'
+      },
+      {
+        id: '12',
+        startTime: 70,
+        endTime: 75,
+        text: 'Thank you for your attention.',
+        speaker: 'Presenter',
+        confidence: 0.97,
+        isHighlight: false,
+        segment: 'Conclusion'
       }
-    ],
-    createdAt: '2024-07-03T15:30:00Z'
-  }
-];
+    ];
 
-// 模擬 API 延遲
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-// Mock API 函數
-export const mockApi = {
-  // 獲取所有影片
-  getVideos: async (): Promise<VideoHighlight[]> => {
-    await delay(800); // 模擬網路延遲
-    return mockVideos;
-  },
-
-  // 獲取單一影片
-  getVideo: async (id: string): Promise<VideoHighlight | null> => {
-    await delay(500);
-    return mockVideos.find((video) => video.id === id) || null;
-  },
-
-  // 上傳影片並分析（模擬）
-  uploadVideo: async (file: File): Promise<VideoHighlight> => {
-    await delay(3000); // 模擬分析時間
-
+    // 創建影片物件
     const newVideo: VideoHighlight = {
-      id: Date.now().toString(),
-      title: file.name.replace(/\.[^/.]+$/, ''),
-      description: '自動生成的影片分析',
-      thumbnail: 'https://via.placeholder.com/300x200',
-      duration: Math.floor(Math.random() * 3600) + 300, // 5分鐘到1小時
-      highlights: [
-        {
-          id: `h${Date.now()}`,
-          startTime: Math.floor(Math.random() * 300),
-          endTime: Math.floor(Math.random() * 300) + 15,
-          description: '自動檢測到的精彩片段',
-          confidence: Math.random() * 0.3 + 0.7 // 0.7-1.0
-        }
-      ],
-      createdAt: new Date().toISOString()
+      id: videoId,
+      title: file.name.replace(/\.[^/.]+$/, ''), // 移除副檔名
+      duration: 75, // 總長度 75 秒
+      uploadedAt: new Date().toISOString(),
+      processingStatus: 'completed',
+      thumbnailUrl: '/api/placeholder/320/180',
+      transcript: transcript
     };
 
-    mockVideos.push(newVideo);
+    // 存儲到記憶體
+    currentVideo = newVideo;
+
     return newVideo;
   },
 
-  
+  // 獲取單一影片數據
+  getSingleVideoData: (videoId: string): VideoHighlight | null => {
+    return currentVideo?.id === videoId ? currentVideo : null;
+  }
 };
