@@ -2,7 +2,7 @@
 import type {
   VideoHighlight,
   TranscriptItem,
-  UploadProgress
+  UploadProgressProps
 } from '@/types/video';
 
 // 簡單的記憶體存儲
@@ -12,7 +12,7 @@ export const mockApi = {
   // 上傳影片並生成轉錄
   uploadVideo: async (
     file: File,
-    onProgress: (progress: UploadProgress) => void
+    onProgress: (progress: UploadProgressProps) => void
   ): Promise<VideoHighlight> => {
     const videoId = `video_${Date.now()}`;
 

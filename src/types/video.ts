@@ -16,7 +16,7 @@ export interface VideoHighlight {
   transcript: TranscriptItem[];
 }
 
-export interface UploadProgress {
+export interface UploadProgressProps {
   progress: number; // 進度百分比 (0-100)
   stage:
     | 'uploading'

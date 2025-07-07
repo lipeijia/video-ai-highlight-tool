@@ -1,14 +1,13 @@
 // src/hooks/useVideos.ts
 import { useMutation } from '@tanstack/react-query';
 import { mockApi } from '@/lib/mock-api';
-import type {  UploadProgress } from '@/types/video';
+import type { UploadProgressProps } from '@/types/video';
 import { useState } from 'react';
 
 // 上傳影片 Hook
 export function useVideoUpload() {
-  const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(
-    null
-  );
+  const [uploadProgress, setUploadProgress] =
+    useState<UploadProgressProps | null>(null);
 
   const mutation = useMutation({
     mutationFn: (file: File) => {
