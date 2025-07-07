@@ -7,9 +7,9 @@ import { useVideoUpload } from '@/hooks/useVideos';
 import { VideoHighlight } from '@/types/video';
 
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
-import { CloudUpload, FileVideo, CheckCircle } from 'lucide-react';
+import { UploadProgress } from '@/components';
+import { CloudUpload, FileVideo } from 'lucide-react';
 
 interface VideoUploadProps {
   onVideoProcessed?: (data: VideoHighlight) => void;
@@ -167,64 +167,31 @@ function VideoUpload({ onVideoProcessed }: VideoUploadProps = {}) {
         </Button>
       )}
 
-      {/* 處理進度 */}
-      {isPending && uploadProgress && (
-        <div className='space-y-4'>
-          <div className='bg-white border rounded-lg p-6'>
-            <div className='flex items-center space-x-3 mb-4'>
-              {uploadProgress.stage === 'completed' ? (
-                <CheckCircle className='h-6 w-6 text-green-500' />
-              ) : (
-                <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500' />
-              )}
-              <div>
-                <p className='font-medium text-gray-900'>
-                  {uploadProgress.message}
-                </p>
-                <p className='text-sm text-gray-500'>
-                  階段: {getStageText(uploadProgress.stage)}
-                </p>
-              </div>
-            </div>
-
-            <div className='space-y-2'>
-              <div className='flex justify-between text-sm'>
-                <span>進度</span>
-                <span>{uploadProgress.progress}%</span>
-              </div>
-              <Progress value={uploadProgress.progress} className='h-2' />
-            </div>
-          </div>
-        </div>
+      {/* 上傳進度顯示 */}
+      {uploadProgress && (
+        <UploadProgress
+          progress={uploadProgress.progress}
+          stage={uploadProgress.stage}
+          message={uploadProgress.message}
+        />
       )}
+    
 
       {/* 錯誤訊息 */}
-      {error && (
+      {error &&
         toast.error('上傳失敗！', {
-            description: error.message || '請稍後再試',
-            duration: 2000,
-            position: 'top-center',
-            style: {
-              background: 'hsl(var(--destructive))',
-              color: 'hsl(var(--destructive-foreground))',
-              border: '1px solid hsl(var(--destructive))'
-            }
-          })
-      )}
+          description: error.message || '請稍後再試',
+          duration: 2000,
+          position: 'top-center',
+          style: {
+            background: 'hsl(var(--destructive))',
+            color: 'hsl(var(--destructive-foreground))',
+            border: '1px solid hsl(var(--destructive))'
+          }
+        })}
     </div>
   );
 }
 
-
-function getStageText(stage: string) {
-  const stages = {
-    uploading: '檔案上傳',
-    processing: 'AI 分析',
-    generating_transcript: '生成字幕',
-    identifying_highlights: '識別重點',
-    completed: '處理完成'
-  };
-  return stages[stage as keyof typeof stages] || stage;
-}
 
 export default VideoUpload;

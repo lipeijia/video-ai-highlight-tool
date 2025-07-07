@@ -4,8 +4,7 @@
 import { useState } from 'react';
 import { VideoHighlight } from '@/types/video';
 
-import VideoUpload from '@/components/videoUpload';
-import VideoTranscript from '@/components/videoTranscript';
+import { VideoUpload,VideoTranscript } from '@/features';
 
 export default function HomePage() {
   const [video, setVideo] = useState<VideoHighlight | null>(null);
