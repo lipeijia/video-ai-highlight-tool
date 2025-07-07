@@ -30,7 +30,7 @@ export function formatTime(seconds: number): string {
 // 根據分類分組轉錄項目
 export function groupTranscriptByCategory(transcript: TranscriptItem[]) {
   return transcript.reduce((groups, item) => {
-    const category = item.category || 'Other';
+    const category = item.segment || 'Other';
     if (!groups[category]) {
       groups[category] = [];
     }
