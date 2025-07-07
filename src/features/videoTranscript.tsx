@@ -6,7 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Play, Pause, SkipBack, SkipForward, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { VideoHighlight, TranscriptItem } from '@/types/video';
-import Video from 'next-video';
+// 使用標準 HTML5 video 元素
 
 
 interface VideoTranscriptProps {
@@ -83,10 +83,10 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
 
   // 當前播放完成，停止播放
   useEffect(() => {
-    if (currentTime >= video.duration) {
+    if (video && currentTime >= video.duration) {
       setIsPlaying(false);
     }
-  }, [currentTime, video, video?.duration]);
+  }, [currentTime, video]);
 
   // 直接根據時間找當前項目
   // 使用 useMemo 來穩定當前字幕項目
@@ -169,7 +169,7 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
     setSelectedHighlights(newSelected);
   };
 
-  // next-video 事件處理函數
+  // HTML5 video 事件處理函數
   const handleTimeUpdate = () => {
     if (videoRef.current) {
       setCurrentTime(videoRef.current.currentTime);
@@ -290,9 +290,9 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
           className='relative aspect-video bg-black overflow-hidden cursor-pointer'
           onClick={togglePlay}
         >
-          <Video
+          <video
             ref={videoRef}
-            src='/videos/calude.mp4'
+            src="/videos/calude.mp4"
             className='w-full h-full object-cover'
             controls={false}
             playsInline
