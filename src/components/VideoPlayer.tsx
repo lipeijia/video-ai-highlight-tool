@@ -2,8 +2,8 @@
 import { forwardRef } from 'react';
 import { Play, Pause } from 'lucide-react';
 import { TranscriptItem } from '@/types/video';
-import { formatTime } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
+import HighlightMarker from './HighlightMarker';
 
 interface VideoPlayerProps {
   /** 影片來源路徑 */
@@ -153,43 +153,14 @@ const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
             {totalDuration > 0 &&
               transcript
                 .filter((item) => item.isHighlight)
-                .map((item) => {
-                  const leftPercent = (item.startTime / totalDuration) * 100;
-                  const widthPercent =
-                    ((item.endTime - item.startTime) / totalDuration) * 100;
-
-                  return (
-                    <div
-                      key={item.id}
-                      className='absolute top-1/2 transform -translate-y-1/2 group'
-                      style={{
-                        left: `${leftPercent}%`,
-                        width: `${widthPercent}%`,
-                        height: '12px'
-                      }}
-                    >
-                      <div
-                        className='h-full bg-primary rounded cursor-pointer hover:bg-primary/80 transition-colors hover:scale-105 shadow-sm'
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          console.log('Highlight clicked:', item.startTime);
-                          onJumpToTime(item.startTime);
-                        }}
-                      />
-
-                      {/* 懸浮提示 */}
-                      <div className='absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black/90 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 max-w-xs'>
-                        <div className='font-semibold'>
-                          {formatTime(item.startTime)} -{' '}
-                          {formatTime(item.endTime)}
-                        </div>
-                        <div className='text-gray-300'>
-                          {item.text.substring(0, 40)}...
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                .map((item) => (
+                  <HighlightMarker
+                    key={item.id}
+                    item={item}
+                    totalDuration={totalDuration}
+                    onJumpToTime={onJumpToTime}
+                  />
+                ))}
 
             {/* 當前播放位置指示器 */}
             {totalDuration > 0 && (
