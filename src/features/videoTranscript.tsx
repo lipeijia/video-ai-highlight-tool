@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { VideoHighlight, TranscriptItem } from '@/types/video';
-// 使用標準 HTML5 video 元素
 import { TranscriptList, VideoPlayer, VideoControls } from '@/components';
 
 
@@ -11,21 +10,36 @@ interface VideoTranscriptProps {
 
 
 export default function VideoTranscript({ video }: VideoTranscriptProps) {
+  /* State 狀態管理 */
+  
+  // 當前播放時間（秒）
   const [currentTime, setCurrentTime] = useState(0);
+  
+  // 影片總時長（秒）- 從 HTML5 video 元素獲取
   const [duration, setDuration] = useState(0);
+  
+  // 影片播放狀態
   const [isPlaying, setIsPlaying] = useState(false);
+  
+  // 用戶選擇的高亮片段 ID 集合
   const [selectedHighlights, setSelectedHighlights] = useState<Set<string>>(
     new Set()
   );
+  
+  // 當前活躍的轉錄項目 ID（用於在列表中高亮顯示）
   const [activeTranscriptId, setActiveTranscriptId] = useState<string | null>(
     null
   );
 
+  // video 元素的 ref，用於直接操作 HTML5 video API
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  /* Computed Values 計算值 */
   
+  // 轉錄文字陣列，從 video prop 中提取
   const transcript = useMemo(() => (video ? video.transcript : []), [video]);
-  // 按分段組織轉錄文字
+  
+  // 按分段組織的轉錄文字，用於在 UI 中分組顯示
   const groupedTranscript = useMemo(() => {
     return transcript.reduce((acc, item) => {
       const segment = item.segment || 'Other';
@@ -38,7 +52,8 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
   }, [transcript]);
 
 
-  // 初始重點
+  // 初始化高亮片段選擇狀態
+  // 當 video 數據載入時，自動選中所有預設的高亮片段
   useEffect(() => {
     if (video && video.transcript) {
       video.transcript.forEach((item) => {
@@ -49,8 +64,9 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
     }
   }, [video]);
 
-  /* useEffect */
-  // 更新當前播放時間
+  /* useEffect 時間管理相關 */
+  // 播放時間更新器
+  // 當影片播放時，每 100ms 更新一次當前時間
   useEffect(() => {
     if (isPlaying) {
       const interval = setInterval(() => {
@@ -67,27 +83,35 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
     }
   }, [isPlaying, video, video?.duration]);
 
-  // 當前播放完成，停止播放
+  // 播放完成檢測
+  // 當播放時間達到影片結尾時，自動停止播放
   useEffect(() => {
     if (video && currentTime >= video.duration) {
       setIsPlaying(false);
     }
   }, [currentTime, video]);
 
-  // 直接根據時間找當前項目
-  // 使用 useMemo 來穩定當前字幕項目
+  // 當前播放時間對應的字幕項目
+  // 根據 currentTime 找到當前應該顯示的字幕
+  // 使用 useMemo 來穩定當前字幕項目，避免不必要的重新渲染
   const currentSubtitle = useMemo(() => {
     return transcript.find(
       (item) => currentTime >= item.startTime && currentTime <= item.endTime
     );
   }, [currentTime, transcript]);
 
-  // 修改 useEffect 使用 useMemo 的結果
+  // 當前字幕項目變化時更新活躍的轉錄項目 ID
+  // 用於在轉錄列表中高亮當前播放的字幕項目
   useEffect(() => {
     setActiveTranscriptId(currentSubtitle?.id || null);
   }, [currentSubtitle]);
 
-  /* Functions */
+  /* Functions 播放控制相關 */
+  
+  /**
+   * 切換播放/暫停狀態
+   * 調用原生 HTML5 video 的 play() 或 pause() 方法
+   */
   const togglePlay = () => {
     if (videoRef.current) {
       if (isPlaying) {
@@ -98,7 +122,11 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
     }
   };
 
-  // 使用原生 HTML5 video API
+  /**
+   * 跳轉到指定時間點
+   * 同時更新 video 元素的 currentTime 和 React state
+   * @param time 目標時間（秒）
+   */
   const jumpToTime = (time: number) => {
     if (videoRef.current) {
       videoRef.current.currentTime = time;
@@ -106,6 +134,10 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
     setCurrentTime(time);
   };
 
+  /**
+   * 跳轉到上一個字幕段落
+   * 如果當前不在任何段落中，則跳到開頭
+   */
   const skipBack = () => {
     const currentIndex = transcript.findIndex(
       (item) => currentTime >= item.startTime && currentTime <= item.endTime
@@ -119,6 +151,10 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
     }
   };
 
+  /**
+   * 跳轉到下一個字幕段落
+   * 如果已是最後一段，則停止播放
+   */
   const skipForward = () => {
     const nextItem = transcript.find((item) => item.startTime > currentTime);
 
@@ -129,7 +165,11 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
     }
   };
 
-  // 選擇/取消選擇重點片段
+  /**
+   * 切換高亮片段的選擇狀態
+   * 用於用戶手動標記/取消標記重點片段
+   * @param itemId 轉錄項目的 ID
+   */
   const toggleHighlight = (itemId: string) => {
     const newSelected = new Set(selectedHighlights);
     if (newSelected.has(itemId)) {
@@ -140,28 +180,48 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
     setSelectedHighlights(newSelected);
   };
 
-  // HTML5 video 事件處理函數
+  /* HTML5 video 事件處理函數 */
+  
+  /**
+   * 處理影片時間更新事件
+   * 同步 video 元素的 currentTime 到 React state
+   */
   const handleTimeUpdate = () => {
     if (videoRef.current) {
       setCurrentTime(videoRef.current.currentTime);
     }
   };
 
+  /**
+   * 處理影片元數據載入完成事件
+   * 獲取影片總時長
+   */
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
       setDuration(videoRef.current.duration);
-      console.log('Video duration:', videoRef.current.duration);
     }
   };
 
+  /**
+   * 處理影片開始播放事件
+   * 更新播放狀態為 true
+   */
   const handlePlay = () => {
     setIsPlaying(true);
   };
 
+  /**
+   * 處理影片暫停事件
+   * 更新播放狀態為 false
+   */
   const handlePause = () => {
     setIsPlaying(false);
   };
 
+  /**
+   * 處理影片播放結束事件
+   * 停止播放並設置時間為影片結尾
+   */
   const handleEnded = () => {
     setIsPlaying(false);
     setCurrentTime(duration);
