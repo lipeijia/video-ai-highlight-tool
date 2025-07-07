@@ -7,7 +7,7 @@ import { Play, Pause, SkipBack, SkipForward, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { VideoHighlight, TranscriptItem } from '@/types/video';
 import Video from 'next-video';
-import getStarted from '/videos/calude.mp4';
+
 
 interface VideoTranscriptProps {
   video?: VideoHighlight;
@@ -15,12 +15,11 @@ interface VideoTranscriptProps {
 
 
 //TODO: 拆分成多個組件
-// 1. 播放器控制組件
-// 2. 轉錄文字顯示組件
-// 3. 當前時間顯示組件
-// 4. 當前字幕高亮顯示組件
-// 5. 跳轉到特定時間的組件
-// 6. 播放/暫停按鈕組件 
+//1. TranscriptList：顯示轉錄列表
+//2. TranscriptItem：單個轉錄項目
+//3. VideoPlayer：顯示視頻播放器和控制
+//4. HighlightMarker：顯示高亮片段標記
+//5. ProgressBar：顯示進度條和高亮片段
 
 
 
@@ -293,7 +292,7 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
         >
           <Video
             ref={videoRef}
-            src={getStarted}
+            src='/videos/calude.mp4'
             className='w-full h-full object-cover'
             controls={false}
             playsInline
@@ -360,9 +359,8 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
                   const rect = e.currentTarget.getBoundingClientRect();
                   const clickX = e.clientX - rect.left;
                   const clickPercent = clickX / rect.width;
-                    const videoDuration = duration || video?.duration || 0;
-                    const newTime =
-                      clickPercent * videoDuration;
+                  const videoDuration = duration || video?.duration || 0;
+                  const newTime = clickPercent * videoDuration;
 
                   console.log('Progress clicked:', {
                     newTime,
@@ -382,7 +380,8 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
               </div>
 
               {/* 高亮片段標記 */}
-              {video && (duration > 0 ? duration : video.duration) > 0 &&
+              {video &&
+                (duration > 0 ? duration : video.duration) > 0 &&
                 transcript
                   .filter((item) => item.isHighlight)
                   .map((item) => {
