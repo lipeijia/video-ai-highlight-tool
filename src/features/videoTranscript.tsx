@@ -10,16 +10,6 @@ interface VideoTranscriptProps {
 }
 
 
-//TODO: 拆分成多個組件
-//1. ✅ TranscriptList：顯示轉錄列表 (已完成)
-//2. ✅ TranscriptItem：單個轉錄項目 (已完成)
-//3. ✅ VideoPlayer：顯示視頻播放器和控制 (已完成)
-//4. ✅ VideoControls：播放控制元件 (已完成)
-//5. ✅ HighlightMarker：顯示高亮片段標記 (已完成)
-//6. ProgressBar：顯示進度條和高亮片段 (在 VideoPlayer 內部)
-
-
-
 export default function VideoTranscript({ video }: VideoTranscriptProps) {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
