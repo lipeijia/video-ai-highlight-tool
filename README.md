@@ -1,6 +1,13 @@
 ## 🎯 Frontend Homework Assignment - Video AI Highlight Tool
 
-[Demo](video-ai-highlight-tool.vercel.app)
+###[Demo](video-ai-highlight-tool.vercel.app)
+
+上傳畫面
+![](/public/upload.png)
+
+Transcript 畫面
+![](/public/transcript.png)
+
 
 #### 1. 影片上傳功能 ✅
 - 拖拽和點擊上傳
