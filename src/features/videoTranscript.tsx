@@ -4,9 +4,9 @@ import { formatTime } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Play, Pause, SkipBack, SkipForward, Clock } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { VideoHighlight, TranscriptItem } from '@/types/video';
 // 使用標準 HTML5 video 元素
+import TranscriptList from '@/components/TranscriptList';
 
 
 interface VideoTranscriptProps {
@@ -15,7 +15,7 @@ interface VideoTranscriptProps {
 
 
 //TODO: 拆分成多個組件
-//1. TranscriptList：顯示轉錄列表
+//1. ✅ TranscriptList：顯示轉錄列表 (已完成)
 //2. TranscriptItem：單個轉錄項目
 //3. VideoPlayer：顯示視頻播放器和控制
 //4. HighlightMarker：顯示高亮片段標記
@@ -34,7 +34,6 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
     null
   );
 
-  const transcriptRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   
@@ -100,21 +99,6 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
   useEffect(() => {
     setActiveTranscriptId(currentSubtitle?.id || null);
   }, [currentSubtitle]);
-
-  // 自動滾動到當前項目
-  useEffect(() => {
-    if (activeTranscriptId && transcriptRef.current) {
-      const activeElement = transcriptRef.current.querySelector(
-        `[data-transcript-id="${activeTranscriptId}"]`
-      );
-      if (activeElement) {
-        activeElement.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center'
-        });
-      }
-    }
-  }, [activeTranscriptId]);
 
   /* Functions */
   const togglePlay = () => {
@@ -204,79 +188,13 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
           Transcripts
         </h3>
 
-        <div className='flex-1 overflow-hidden'>
-          <div
-            ref={transcriptRef}
-            className='space-y-6 overflow-y-auto h-full pr-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent pb-6 lg:pb-0'
-          >
-            {Object.entries(groupedTranscript).map(([segment, items]) => (
-              <div key={segment} className='space-y-3'>
-                <div className='flex items-center gap-2'>
-                  <h3 className='scroll-m-20 text-2xl font-semibold tracking-tight'>
-                    {segment}
-                  </h3>
-                </div>
-
-                {items.map((item) => (
-                  <div
-                    key={item.id}
-                    data-transcript-id={item.id}
-                    className={cn(
-                      'group relative p-4 rounded-lg transition-all duration-50 cursor-pointer',
-                      'border hover:border-primary/60 hover:bg-primary/10 ring-2 ring-transparent',
-                      'after:absolute after:top-3 after:right-3 after:w-2 after:h-2 after:border after:rounded-full',
-
-                      selectedHighlights.has(item.id) && [
-                        'bg-primary/25 border-primary/0 shadow-md',
-                        'after:border-primary/70'
-                      ],
-
-                      activeTranscriptId === item.id && [
-                        'bg-primary/0 border-primary shadow-sm ring-primary/30',
-                        'after:animate-pulse after:w-3 after:h-3 after:shadow-md',
-                        'after:bg-primary after:shadow-sm after:ring-1 after:ring-primary/30'
-                      ],
-
-                      selectedHighlights.has(item.id) &&
-                        activeTranscriptId === item.id && [
-                          'bg-primary/25 border-primary shadow-lg ring-primary/30'
-                        ]
-                    )}
-                    onClick={() => toggleHighlight(item.id)}
-                  >
-                    <div className='flex items-start justify-between gap-3'>
-                      <div className='flex gap-2 items-center'>
-                        <span
-                          className={cn(
-                            'font-mono bg-secondary px-2 py-1 rounded text-xs text-muted-foreground',
-                            'hover:text-primary',
-                            activeTranscriptId === item.id &&
-                              'text-primary font-semibold'
-                          )}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            jumpToTime(item.startTime);
-                          }}
-                        >
-                          {formatTime(item.startTime)}
-                        </span>
-                        <p
-                          className={cn(
-                            'text-sm leading-relaxed text-foreground',
-                            activeTranscriptId === item.id &&
-                              'text-black font-semibold'
-                          )}
-                        >
-                          {item.text}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
+        <TranscriptList
+          groupedTranscript={groupedTranscript}
+          selectedHighlights={selectedHighlights}
+          activeTranscriptId={activeTranscriptId}
+          onToggleHighlight={toggleHighlight}
+          onJumpToTime={jumpToTime}
+        />
       </div>
 
       {/* 右側：preview  將這整個區域變成 sticky*/}

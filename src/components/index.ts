@@ -1,3 +1,4 @@
 import UploadProgress from "./UploadProgress";
+import TranscriptList from "./TranscriptList";
 
-export { UploadProgress };
+export { UploadProgress, TranscriptList };
