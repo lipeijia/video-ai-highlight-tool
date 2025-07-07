@@ -9,7 +9,7 @@ import { VideoHighlight } from '@/types/video';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
-import { CloudUpload, FileVideo, CheckCircle, AlertCircle } from 'lucide-react';
+import { CloudUpload, FileVideo, CheckCircle } from 'lucide-react';
 
 interface VideoUploadProps {
   onVideoProcessed?: (data: VideoHighlight) => void;
@@ -200,12 +200,16 @@ function VideoUpload({ onVideoProcessed }: VideoUploadProps = {}) {
 
       {/* 錯誤訊息 */}
       {error && (
-        <div className='bg-red-50 border border-red-200 rounded-lg p-4'>
-          <div className='flex items-center space-x-2'>
-            <AlertCircle className='h-5 w-5 text-red-500' />
-            <p className='text-red-700'>上傳失敗: {error.message}</p>
-          </div>
-        </div>
+        toast.error('上傳失敗！', {
+            description: error.message || '請稍後再試',
+            duration: 2000,
+            position: 'top-center',
+            style: {
+              background: 'hsl(var(--destructive))',
+              color: 'hsl(var(--destructive-foreground))',
+              border: '1px solid hsl(var(--destructive))'
+            }
+          })
       )}
     </div>
   );

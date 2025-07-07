@@ -37,7 +37,7 @@ export default function HomePage() {
 
 // 如果有影片，顯示轉錄內容
 return (
-    <VideoTranscript video={video} />
+    <VideoTranscript video={video}/>
 )
 
 }

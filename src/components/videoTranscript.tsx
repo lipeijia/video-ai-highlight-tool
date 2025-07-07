@@ -13,114 +13,6 @@ interface VideoTranscriptProps {
   video?: VideoHighlight;
 }
 
-// 模擬資料
-const mockTranscript: TranscriptItem[] = [
-  {
-    id: '1',
-    startTime: 0,
-    endTime: 3,
-    text: 'Welcome to our product demonstration.',
-    isHighlight: false,
-    segment: 'Introduction'
-  },
-  {
-    id: '2',
-    startTime: 5,
-    endTime: 10,
-    text: "Today, we'll be showcasing our latest innovation.",
-    isHighlight: true,
-    segment: 'Introduction'
-  },
-  {
-    id: '3',
-    startTime: 15,
-    endTime: 22,
-    text: 'Our product has three main features.',
-    isHighlight: false,
-    segment: 'Key Features'
-  },
-  {
-    id: '4',
-    startTime: 20,
-    endTime: 23,
-    text: "First, it's incredibly easy to use.",
-    isHighlight: false,
-    segment: 'Key Features'
-  },
-  {
-    id: '5',
-    startTime: 25,
-    endTime: 28,
-    text: "Second, it's highly efficient.",
-    isHighlight: false,
-    segment: 'Key Features'
-  },
-  {
-    id: '6',
-    startTime: 30,
-    endTime: 35,
-    text: "And third, it's cost-effective.",
-    isHighlight: false,
-    segment: 'Key Features'
-  },
-  {
-    id: '7',
-    startTime: 40,
-    endTime: 43,
-    text: 'Let me show you how it works.',
-    isHighlight: false,
-    segment: 'Demonstration'
-  },
-  {
-    id: '8',
-    startTime: 45,
-    endTime: 48,
-    text: 'Simply press this button to start.',
-    isHighlight: true,
-    segment: 'Demonstration'
-  },
-  {
-    id: '9',
-    startTime: 50,
-    endTime: 53,
-    text: 'The interface is intuitive and user-friendly.',
-    isHighlight: true,
-    segment: 'Demonstration'
-  },
-  {
-    id: '10',
-    startTime: 55,
-    endTime: 58,
-    text: 'In conclusion, our product is game-changer.',
-    isHighlight: false,
-    segment: 'Conclusion'
-  },
-  {
-    id: '11',
-    startTime: 60,
-    endTime: 63,
-    text: 'We are excited to bring it to market.',
-    isHighlight: true,
-    segment: 'Conclusion'
-  },
-  {
-    id: '12',
-    startTime: 65,
-    endTime: 67,
-    text: 'Theank you for your attention.',
-    isHighlight: false,
-    segment: 'Conclusion'
-  }
-];
-
-const mockVideo: VideoHighlight = {
-  id: 'demo-video',
-  title: 'AI Video Tool Demo',
-  duration: 67,
-  uploadedAt: new Date().toISOString(),
-  processingStatus: 'completed',
-  transcript: mockTranscript
-};
 
 //TODO: 拆分成多個組件
 // 1. 播放器控制組件
@@ -129,11 +21,6 @@ const mockVideo: VideoHighlight = {
 // 4. 當前字幕高亮顯示組件
 // 5. 跳轉到特定時間的組件
 // 6. 播放/暫停按鈕組件 
-//TODO: 需要優化的功能
-// 1. 當前時間的顯示和跳轉功能
-// 2. 當前字幕的高亮顯示
-// 3. 播放/暫停按鈕的狀態切換
-// 4. 跳轉到特定時間的功能  
 
 
 
@@ -151,8 +38,8 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
   const transcriptRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const currentVideo = video || mockVideo;
-  const transcript = currentVideo.transcript;
+  
+  const transcript = useMemo(() => (video ? video.transcript : []), [video]);
   // 按分段組織轉錄文字
   const groupedTranscript = useMemo(() => {
     return transcript.reduce((acc, item) => {
@@ -168,12 +55,14 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
 
   // 初始重點
   useEffect(() => {
-    currentVideo.transcript.forEach((item) => {
-      if (item.isHighlight) {
-        setSelectedHighlights((prev) => prev.add(item.id));
-      }
-    });
-  }, [currentVideo]);
+    if (video && video.transcript) {
+      video.transcript.forEach((item) => {
+        if (item.isHighlight) {
+          setSelectedHighlights((prev) => prev.add(item.id));
+        }
+      });
+    }
+  }, [video]);
 
   /* useEffect */
   // 更新當前播放時間
@@ -183,21 +72,22 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
         setCurrentTime((prev) => {
           const newTime = prev + 0.1;
           // 修正：到達結尾時直接返回結尾時間，不重置為 0
-          return newTime >= currentVideo.duration
-            ? currentVideo.duration
+          if (!video) return newTime;
+          return newTime >= video.duration
+            ? video.duration
             : newTime;
         });
       }, 100);
       return () => clearInterval(interval);
     }
-  }, [isPlaying, currentVideo.duration]);
+  }, [isPlaying, video, video?.duration]);
 
   // 當前播放完成，停止播放
   useEffect(() => {
-    if (currentTime >= currentVideo.duration) {
+    if (currentTime >= video.duration) {
       setIsPlaying(false);
     }
-  }, [currentTime, currentVideo.duration]);
+  }, [currentTime, video, video?.duration]);
 
   // 直接根據時間找當前項目
   // 使用 useMemo 來穩定當前字幕項目
@@ -318,7 +208,7 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
         <div className='flex-1 overflow-hidden'>
           <div
             ref={transcriptRef}
-            className='space-y-6 overflow-y-auto h-full pr-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent pb-[32rem] lg:pb-0'
+            className='space-y-6 overflow-y-auto h-full pr-2 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent pb-6 lg:pb-0'
           >
             {Object.entries(groupedTranscript).map(([segment, items]) => (
               <div key={segment} className='space-y-3'>
@@ -470,12 +360,13 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
                   const rect = e.currentTarget.getBoundingClientRect();
                   const clickX = e.clientX - rect.left;
                   const clickPercent = clickX / rect.width;
-                  const newTime =
-                    clickPercent * (duration || currentVideo.duration);
+                    const videoDuration = duration || video?.duration || 0;
+                    const newTime =
+                      clickPercent * videoDuration;
 
                   console.log('Progress clicked:', {
                     newTime,
-                    duration: duration || currentVideo.duration
+                    duration: videoDuration
                   });
                   jumpToTime(newTime);
                 }}
@@ -484,19 +375,19 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
                   value={
                     duration > 0
                       ? (currentTime / duration) * 100
-                      : (currentTime / currentVideo.duration) * 100
+                      : (currentTime / (video?.duration || 1)) * 100
                   }
                   className='w-full h-3 hover:h-4 transition-all [&>div]:bg-white/80 [&]:bg-gray-600/50'
                 />
               </div>
 
               {/* 高亮片段標記 */}
-              {(duration > 0 ? duration : currentVideo.duration) > 0 &&
+              {video && (duration > 0 ? duration : video.duration) > 0 &&
                 transcript
                   .filter((item) => item.isHighlight)
                   .map((item) => {
                     const videoDuration =
-                      duration > 0 ? duration : currentVideo.duration;
+                      duration > 0 ? duration : video.duration;
                     const leftPercent = (item.startTime / videoDuration) * 100;
                     const widthPercent =
                       ((item.endTime - item.startTime) / videoDuration) * 100;
@@ -535,13 +426,13 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
                   })}
 
               {/* 當前播放位置指示器 */}
-              {(duration > 0 ? duration : currentVideo.duration) > 0 && (
+              {video && (duration > 0 ? duration : video.duration) > 0 && (
                 <div
                   className='absolute top-1/2 transform -translate-y-1/2 w-4 h-4 bg-white rounded-full border-2 border-primary shadow-lg pointer-events-none transition-all duration-100'
                   style={{
                     left: `${
                       (currentTime /
-                        (duration > 0 ? duration : currentVideo.duration)) *
+                        (duration > 0 ? duration : video.duration)) *
                       100
                     }%`,
                     marginLeft: '-8px'
@@ -574,7 +465,7 @@ export default function VideoTranscript({ video }: VideoTranscriptProps) {
             <Clock className='w-4 h-4' />
             <span className='font-mono'>
               {formatTime(currentTime)} /{' '}
-              {formatTime(duration > 0 ? duration : currentVideo.duration)}
+              {formatTime(duration > 0 ? duration : video?.duration ?? 0)}
             </span>
           </div>
         </div>
